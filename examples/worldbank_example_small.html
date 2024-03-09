@@ -274,6 +274,29 @@
             var hover_region;
 
 
+            function deepClone(item) {
+                if (Array.isArray(item)) {
+                    // Handle array
+                    return item.map(deepClone);
+                } else if (typeof item === 'object' && item !== null) {
+                    // Handle object
+                    if (typeof item.clone === 'function') {
+                        // If the object has a custom clone method, use it.
+                        return item.clone();
+                    } else {
+                        // Else, create a shallow copy and deep clone any properties
+                        const clone = {};
+                        for (const [key, value] of Object.entries(item)) {
+                            clone[key] = deepClone(value);
+                        }
+                        return clone;
+                    }
+                } else {
+                    // Primitive types can be returned directly
+                    return item;
+                }
+            }
+
             function reduceAdd(p, v) {
                 ++p.count;
                 p.gdp += v.gdp;
@@ -302,19 +325,9 @@
                 };
             };
 
-            common_columns = [
+            const common_columns = [
                     // Assign this column to a variable `gdp_column` so we can refer to it below for setting the default sort.
                     {
-                        header: { text: "GDP" },
-                        cells: { html: function (d) { return "$" + (d3.format(',')(Math.round(d.value.gdp))) + "b"; } },
-                        sort: function (d) { return Math.round(d.value.gdp); },
-                        vis: 'bar',
-                        vis_options: {
-                            styles: {
-                                'background-color': 'lightsalmon'
-                            }
-                        }
-                    }, {
                         header: { text: "GDP" },
                         cells: { html: function (d) { return "$" + (d3.format(',')(Math.round(d.value.gdp))) + "b"; } },
                         sort: function (d) { return Math.round(d.value.gdp); },
@@ -391,7 +404,8 @@
                             }
 
                         }
-                    }].concat(common_columns),
+                    }
+                ].concat(deepClone(common_columns)),
                 // The initial **sort**.
                 sort_column: "GDP",
                 // Allow the user to **select** multiple items in the table
@@ -441,24 +455,6 @@
             var country_data = country_dim.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
             console.log("country_data", country_data);
 
-            var country_columns = [
-                    {
-                        header: { text: "Country" },
-                        cells: { html: function (d) { return '<b>' + countries[d.key].name + '</b>'; } }
-                    }, {
-                        // The "Region" column is styled to have a background that matches the color for the
-                        // region this country is in.
-                        header: { text: "Region" },
-                        cells: {
-                            text: function (d) { return regions[countries[d.key].region_id].name; },
-                            styles: {
-                                'background-color': function (d) { return region_color(countries[d.key].region_id); }
-                            }
-                        }
-                    },
-                ].concat(common_columns)
-            console.log(country_columns);
-
             // Create a `c3.Table` to show the top countries
             charts.push(new c3.Table({
                 anchor: '#worldbank_country_table',
@@ -475,7 +471,23 @@
                 pagination: true,
                 searchable: true,
                 // Setup **columns** for this table
-                columns: country_columns,
+                // columns: country_columns,
+                columns: [
+                    {
+                        header: { text: "Country" },
+                        cells: { html: function (d) { return '<b>' + countries[d.key].name + '</b>'; } }
+                    }, {
+                        // The "Region" column is styled to have a background that matches the color for the
+                        // region this country is in.
+                        header: { text: "Region" },
+                        cells: {
+                            text: function (d) { return regions[countries[d.key].region_id].name; },
+                            styles: {
+                                'background-color': function (d) { return region_color(countries[d.key].region_id); }
+                            }
+                        }
+                    },
+                ].concat(deepClone(common_columns)),
                 // Initial column to **sort** on.
                 sort_column: "GDP",
                 // Add some padding to each cell using `cell_options.styles` to assign **styles** to **cells**
