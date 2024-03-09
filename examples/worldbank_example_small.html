@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>World Bank Crossfilter Example</title>
     <meta charset="utf-8" name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -34,31 +35,39 @@
             border: 1px solid black;
             font-family: sans-serif;
         }
+
         .c3.table th {
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
             padding: 0.25em;
             border: 1px solid black;
             border-bottom: 2px solid black;
             background-color: lightgray;
         }
+
         .c3.table caption {
             border: 1px solid black;
         }
+
         .c3.table tr {
             background-color: white;
         }
+
         .c3.table tr:nth-child(2n) {
             background-color: whitesmoke;
         }
+
         .c3.table th.sorted {
             background-color: steelblue;
         }
+
         .c3.table tr.selected {
-            background-image: linear-gradient(#ffeda0,#f9da4d);
+            background-image: linear-gradient(#ffeda0, #f9da4d);
         }
+
         .c3.table tr.deselected:not(:hover) {
             opacity: 0.4;
         }
+
         .c3.table.selectable tr.hover {
             background-color: wheat;
         }
@@ -69,10 +78,10 @@
             border-right: 1px solid black;
             padding: 0.25em;
         }
-        .c3.table td.sorted {
-            background-color: rgba(128,128,128,0.1);
-        }
 
+        .c3.table td.sorted {
+            background-color: rgba(128, 128, 128, 0.1);
+        }
     </style>
 </head>
 
@@ -124,85 +133,91 @@
                     d3.csv('data/gdp.csv')
                         // The `row` callback is used to structure what the rows look like based on the CSV data.
                         // Notice that the numerical values use a `+` to parse the string to a numerical value.
-                        .row(function (row) { return ({
-                        country_name: row['Country Name'],
-                        country_code: row['Country Code'],
-                        indicator: row['Indicator Code'],
-                        value: +row['Value'],
-                        year: +row['Year']
-                    }); })
+                        .row(function (row) {
+                            return ({
+                                country_name: row['Country Name'],
+                                country_code: row['Country Code'],
+                                indicator: row['Indicator Code'],
+                                value: +row['Value'],
+                                year: +row['Year']
+                            });
+                        })
                         // The `get` callback is used to process the data once it is loaded.
                         // The World Bank provides the data in a format with a single value per row.
                         // This code translates that to a format with a row for each country and year combination and
                         // a column for each additional metric provided.
                         .get(function (error, rows) {
-                        var tmp_map = {};
-                        for (var _i = 0, rows_1 = rows; _i < rows_1.length; _i++) {
-                            var row_1 = rows_1[_i];
-                            if (!row_1.country_code)
-                                continue;
-                            var data_row = void 0;
-                            if (!(data_row = tmp_map[row_1.country_code + row_1.year]))
-                                data_row = tmp_map[row_1.country_code + row_1.year] = {
-                                    country_name: row_1.country_name,
-                                    country_code: row_1.country_code,
-                                    year: row_1.year
-                                };
-                            data_row[indicator_mapping[row_1.indicator]] = row_1.value;
-                        }
-                        gdp_data = [];
-                        for (var k in tmp_map)
-                            gdp_data.push(tmp_map[k]);
-                        // Convert the GDP metrics to billions of dollars for convenience and ensure
-                        // GDP isn't 0 if the data is missing to avoid divide by zero problems.
-                        for (var _a = 0, gdp_data_1 = gdp_data; _a < gdp_data_1.length; _a++) {
-                            var record = gdp_data_1[_a];
-                            for (var _b = 0, _c = ['gdp', 'agriculture', 'manufacturing', 'services']; _b < _c.length; _b++) {
-                                var metric = _c[_b];
-                                record[metric] /= 1000000000;
+                            var tmp_map = {};
+                            for (var _i = 0, rows_1 = rows; _i < rows_1.length; _i++) {
+                                var row_1 = rows_1[_i];
+                                if (!row_1.country_code)
+                                    continue;
+                                var data_row = void 0;
+                                if (!(data_row = tmp_map[row_1.country_code + row_1.year]))
+                                    data_row = tmp_map[row_1.country_code + row_1.year] = {
+                                        country_name: row_1.country_name,
+                                        country_code: row_1.country_code,
+                                        year: row_1.year
+                                    };
+                                data_row[indicator_mapping[row_1.indicator]] = row_1.value;
                             }
-                            if (!record.gdp)
-                                record.gdp = 1;
-                        }
-                        // Resolve this promise to indicate that this dependency has been met.
-                        resolve();
-                    });
+                            gdp_data = [];
+                            for (var k in tmp_map)
+                                gdp_data.push(tmp_map[k]);
+                            // Convert the GDP metrics to billions of dollars for convenience and ensure
+                            // GDP isn't 0 if the data is missing to avoid divide by zero problems.
+                            for (var _a = 0, gdp_data_1 = gdp_data; _a < gdp_data_1.length; _a++) {
+                                var record = gdp_data_1[_a];
+                                for (var _b = 0, _c = ['gdp', 'agriculture', 'manufacturing', 'services']; _b < _c.length; _b++) {
+                                    var metric = _c[_b];
+                                    record[metric] /= 1000000000;
+                                }
+                                if (!record.gdp)
+                                    record.gdp = 1;
+                            }
+                            // Resolve this promise to indicate that this dependency has been met.
+                            resolve();
+                        });
                 }),
                 // ### Load the country data **CSV**
                 new Promise(function (resolve) {
                     d3.csv('data/countries.csv')
-                        .row(function (row) { return ({
-                        name: row['name'],
-                        code: row['world_bank_code'],
-                        // Countries include a link to their region.
-                        region_id: +row['region-code']
-                    }); })
+                        .row(function (row) {
+                            return ({
+                                name: row['name'],
+                                code: row['world_bank_code'],
+                                // Countries include a link to their region.
+                                region_id: +row['region-code']
+                            });
+                        })
                         // When the raw CSV has been loaded convert it to an associative map based on country ID.
                         // Normally I found it more efficient to manage this data as an array where the index into the array cooresponds to the ID,
                         // but just keeping the example simple here.
                         .get(function (error, rows) {
-                        rows.filter(function (row) { return !!row.code; }).forEach(function (row) {
-                            countries[row.code] = row;
+                            rows.filter(function (row) { return !!row.code; }).forEach(function (row) {
+                                countries[row.code] = row;
+                            });
+                            resolve();
                         });
-                        resolve();
-                    });
                 }),
                 // ### Load the region info **CSV**
                 // Convert it to an associative object, and resolve its promise when done.
                 new Promise(function (resolve) {
                     d3.csv('data/regions.csv')
-                        .row(function (row) { return ({
-                        name: row['name'],
-                        id: +row['id'],
-                        parent_id: +row['parent_id']
-                    }); })
+                        .row(function (row) {
+                            return ({
+                                name: row['name'],
+                                id: +row['id'],
+                                parent_id: +row['parent_id']
+                            });
+                        })
                         .get(function (error, rows) {
-                        for (var _i = 0, rows_2 = rows; _i < rows_2.length; _i++) {
-                            var row_2 = rows_2[_i];
-                            regions[row_2.id] = row_2;
-                        }
-                        resolve();
-                    });
+                            for (var _i = 0, rows_2 = rows; _i < rows_2.length; _i++) {
+                                var row_2 = rows_2[_i];
+                                regions[row_2.id] = row_2;
+                            }
+                            resolve();
+                        });
                 }),
             ]).then(function () {
                 d3.selectAll('#waiting').remove();
@@ -237,10 +252,6 @@
             var country_dim = xf.dimension(function (d) { return d.country_code; });
             var region_dim = xf.dimension(function (d) { return countries[d.country_code].region_id; });
             var year_dim = xf.dimension(function (d) { return d.year; });
-            var urban_dim = xf.dimension(function (d) { return d.urban_population; });
-            var agriculture_dim = xf.dimension(function (d) { return Math.min(d.agriculture / d.gdp * 100, 100); });
-            var services_dim = xf.dimension(function (d) { return Math.min(d.services / d.gdp * 100, 100); });
-            var manufacturing_dim = xf.dimension(function (d) { return Math.min(d.manufacturing / d.gdp * 100, 100); });
             // Store an array of all the visualizations in this example.Create `redraw()` and `restyle()`
             // functions to update all of the charts in this example when the dataset is updated via _Crossfilter_.
             // C3 doesn't try to automatically update or resize charts because that can be expensive and so it
@@ -261,41 +272,56 @@
             // These variables will track the country or region the user's mouse is currently hovering over.
             var hover_country;
             var hover_region;
-            // ###########################################################################
-            // ### Region Table
-            // Use Crossfilter to get an array of data just like above.  Only, in this case,
-            // we are using the `region_dim` dimension instead of the year dimension.  For each region,
-            // this grouping will reduce the value based on GDP.
-            var region_data = region_dim.group().reduceSum(function (d) { return d.gdp; }).all();
-            // Use this D3 utility function to colorize our regions.
-            var region_color = d3.scale.category10();
-            // Create a `c3.Table` for the regions table.
-            var regions_table;
-            var gdp_column;
-            charts.push(regions_table = new c3.Table({
-                anchor: '#worldbank_region_table',
-                // Bind it to the **data** prepared above.
-                // The `key`'s represent region_id`s and the `value`'s represent gdp.
-                data: region_data,
-                // Create two **columns** for this table.  One with the region name and another for the GDP value
-                columns: [
+
+
+            function reduceAdd(p, v) {
+                ++p.count;
+                p.gdp += v.gdp;
+                p.population += v.population;
+                p.land_area += v.land_area;
+                p.gdp_per_capita = p.population ? (p.gdp * 1000000000) / p.population : 0;
+                return p;
+            };
+
+            function reduceRemove(p, v) {
+                --p.count;
+                p.gdp -= v.gdp;
+                p.population -= v.population;
+                p.land_area -= v.land_area;
+                p.gdp_per_capita = p.population ? (p.gdp * 1000000000) / p.population : 0;
+                return p;
+            };
+
+            function reduceInitial() {
+                return {
+                    count: 0,
+                    gdp: 0,
+                    gdp_per_capita: 0,
+                    population: 0,
+                    land_area: 0
+                };
+            };
+
+            common_columns = [
+                    // Assign this column to a variable `gdp_column` so we can refer to it below for setting the default sort.
                     {
-                        header: { text: "Region" },
-                        cells: { text: function (d) { return regions[d.key].name; } }
-                    },
-                    gdp_column = {
-                        header: { text: "GDP in $b" },
-                        // Use a custom **html formatter** for the cell contents
-                        cells: { html: function (d) { return d3.format(',')(Math.round(Math.abs(d.value))); } },
-                        // The **value** of this cell used for the bar visualization and for sorting.
-                        value: function (d) { return Math.abs(d.value); },
-                        // In addition to the html content above also use a C3 `bar` **visualization** of the data
-                        // This will render a bar graph inside the table cell whose width is based on the cell value.
-                        // `vis_options.styles` is used to set the color for this bar.
+                        header: { text: "GDP" },
+                        cells: { html: function (d) { return "$" + (d3.format(',')(Math.round(d.value.gdp))) + "b"; } },
+                        sort: function (d) { return Math.round(d.value.gdp); },
                         vis: 'bar',
                         vis_options: {
                             styles: {
-                                'background-color': function (d) { return region_color(d.key); }
+                                'background-color': 'lightsalmon'
+                            }
+                        }
+                    }, {
+                        header: { text: "GDP" },
+                        cells: { html: function (d) { return "$" + (d3.format(',')(Math.round(d.value.gdp))) + "b"; } },
+                        sort: function (d) { return Math.round(d.value.gdp); },
+                        vis: 'bar',
+                        vis_options: {
+                            styles: {
+                                'background-color': 'lightsalmon'
                             }
                         }
                     }, {
@@ -306,11 +332,68 @@
                         header: { text: "Population" },
                         cells: { html: function (d) { return d3.format(',')(d.value.population); } },
                         sort: function (d) { return d.value.population; },
-                        vis: 'bar'
-                    }
-                ],
+                        vis: 'bar',
+                        vis_options: {
+                            styles: {
+                                'background-color': 'lightblue'
+                            }
+                        }
+                    }, {
+                        header: { text: "Land Area" },
+                        cells: { html: function (d) { return (d3.format(',')(Math.round(d.value.land_area))) + "km<sup>2</sup>"; } },
+                        sort: function (d) { return Math.round(d.value.land_area); },
+                        vis: 'bar',
+                        vis_options: {
+                            styles: {
+                                'background-color': 'lightgreen'
+                            }
+                        }
+                    }, {
+                        // By default, the `bar` visualization will base the bar width as a percentage of the
+                        // total value of all cells.  This isn't always appropriate, though, such as in the case
+                        // of GDP per capita.  So, here we manually set the `total_value` to be the maximum
+                        // per capita value.  Look out for Monaco!
+                        header: { text: "GDP per capita" },
+                        cells: { html: function (d) { return "$" + (d3.format(',')(Math.round(d.value.gdp_per_capita))); } },
+                        sort: function (d) { return Math.round(d.value.gdp_per_capita); },
+                        vis: 'bar',
+                        vis_options: {
+                            styles: {
+                                'background-color': 'lightblue'
+                            }
+                        }
+                    },
+                ]
+            // ###########################################################################
+            // ### Region Table
+            var region_color = d3.scale.category10();
+            var region_data = region_dim.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
+            // Create a `c3.Table` for the regions table.
+            var regions_table;
+            var gdp_column;
+            charts.push(regions_table = new c3.Table({
+                anchor: '#worldbank_region_table',
+                // Bind it to the **data** prepared above.
+                // The `key`'s represent region_id`s and the `value`'s represent gdp.
+                data: region_data,
+                sortable: true,
+                width: '100%',
+                // Create two **columns** for this table.  One with the region name and another for the GDP value
+                columns: [
+                    {
+                        // The "Region" column is styled to have a background that matches the color for the
+                        // region this country is in.
+                        header: { text: "Region" },
+                        cells: {
+                            text: function (d) { return regions[d.key].name; },
+                            styles: {
+                                'background-color': function (d) { return region_color(d.key); }
+                            }
+
+                        }
+                    }].concat(common_columns),
                 // The initial **sort**.
-                sort_column: gdp_column,
+                sort_column: "GDP",
                 // Allow the user to **select** multiple items in the table
                 selectable: 'multi',
                 // `row_options` is used to dynamically adjust **rows**.
@@ -354,22 +437,29 @@
             });
             // #########################################################################################
             // ## Country Table
-            var country_data = country_dim.group().reduce(function (p, v) {
-                p.gdp += v.gdp;
-                p.gdp_per_capita += v.gdp_per_capita;
-                p.population += v.population;
-                p.land_area += v.land_area;
-                return p;
-            }, function (p, v) {
-                p.gdp -= v.gdp;
-                p.gdp_per_capita -= v.gdp_per_capita;
-                p.population -= v.population;
-                p.land_area -= v.land_area;
-                return p;
-            }, function () { return { gdp: 0, gdp_per_capita: 0, population: 0, land_area: 0 }; }).all();
+
+            var country_data = country_dim.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
             console.log("country_data", country_data);
+
+            var country_columns = [
+                    {
+                        header: { text: "Country" },
+                        cells: { html: function (d) { return '<b>' + countries[d.key].name + '</b>'; } }
+                    }, {
+                        // The "Region" column is styled to have a background that matches the color for the
+                        // region this country is in.
+                        header: { text: "Region" },
+                        cells: {
+                            text: function (d) { return regions[countries[d.key].region_id].name; },
+                            styles: {
+                                'background-color': function (d) { return region_color(countries[d.key].region_id); }
+                            }
+                        }
+                    },
+                ].concat(common_columns)
+            console.log(country_columns);
+
             // Create a `c3.Table` to show the top countries
-            var country_gdp_column;
             charts.push(new c3.Table({
                 anchor: '#worldbank_country_table',
                 width: '100%',
@@ -385,55 +475,9 @@
                 pagination: true,
                 searchable: true,
                 // Setup **columns** for this table
-                columns: [
-                    {
-                        header: { text: "Country" },
-                        cells: { html: function (d) { return '<b>' + countries[d.key].name + '</b>'; } }
-                    }, {
-                        // The "Region" column is styled to have a background that matches the color for the
-                        // region this country is in.
-                        header: { text: "Region" },
-                        cells: {
-                            text: function (d) { return regions[countries[d.key].region_id].name; },
-                            styles: {
-                                'background-color': function (d) { return region_color(countries[d.key].region_id); }
-                            }
-                        }
-                    }, {
-                        // These columns use custom formatters to set the html content of the cell
-                        // adding commas, units, rounding, etc.  You can add raw HTML if you like.
-                        // These column also use the `vis` visualization support to render a bar
-                        // graph based on the cell value.
-                        header: { text: "Population" },
-                        cells: { html: function (d) { return d3.format(',')(d.value.population); } },
-                        sort: function (d) { return d.value.population; },
-                        vis: 'bar'
-                    }, {
-                        header: { text: "Land Area" },
-                        cells: { html: function (d) { return (d3.format(',')(Math.round(d.value.land_area))) + "km<sup>2</sup>"; } },
-                        sort: function (d) { return Math.round(d.value.land_area); },
-                        vis: 'bar'
-                    },
-                    // Assign this column to a variable `gdp_column` so we can refer to it below for setting the default sort.
-                    country_gdp_column = {
-                        header: { text: "GDP" },
-                        cells: { html: function (d) { return "$" + (d3.format(',')(Math.round(d.value.gdp))) + "b"; } },
-                        sort: function (d) { return Math.round(d.value.gdp); },
-                        vis: 'bar'
-                    }, {
-                        // By default, the `bar` visualization will base the bar width as a percentage of the
-                        // total value of all cells.  This isn't always appropriate, though, such as in the case
-                        // of GDP per capita.  So, here we manually set the `total_value` to be the maximum
-                        // per capita value.  Look out for Monaco!
-                        header: { text: "GDP per capita" },
-                        cells: { html: function (d) { return "$" + (d3.format(',')(Math.round(d.value.gdp_per_capita))); } },
-                        sort: function (d) { return Math.round(d.value.gdp_per_capita); },
-                        vis: 'bar',
-                        total_value: function () { return d3.max(country_data, function (d) { return d.value.gdp_per_capita; }); }
-                    },
-                ],
+                columns: country_columns,
                 // Initial column to **sort** on.
-                sort_column: country_gdp_column,
+                sort_column: "GDP",
                 // Add some padding to each cell using `cell_options.styles` to assign **styles** to **cells**
                 cell_options: {
                     styles: {
