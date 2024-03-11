@@ -426,7 +426,8 @@
                         header: { text: "Year" },
                         cells: {
                             text: function (d) { return d.key; }
-                        }
+                        },
+                        sort: function (d) { return d.key; }
                     }
                 ].concat(deepClone(common_columns))
             });
@@ -442,7 +443,8 @@
                         header: { text: "Region" },
                         cells: {
                             text: function (d) { return regions[d.key].name; },
-                        }
+                        },
+                        sort: function (d) { return regions[d.key].name; },
                     }
                 ].concat(deepClone(common_columns))
             });
@@ -457,7 +459,8 @@
                         header: { text: "Region" },
                         cells: {
                             text: function (d) { return regions[d.key].name; },
-                        }
+                        },
+                        sort: function (d) { return regions[d.key].name; },
                     }
                 ].concat(deepClone(common_columns)),
                 customOptions: {
