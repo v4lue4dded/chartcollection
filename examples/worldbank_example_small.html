@@ -264,10 +264,6 @@
                     chart.restyle();
                 }
             }
-            // These variables will track the country or region the user's mouse is currently hovering over.
-            var hover_country;
-            var hover_region;
-
 
             function deepClone(item) {
                 if (Array.isArray(item)) {
@@ -377,9 +373,7 @@
             // ### year Table
             var year_data = year_dim.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
             // Create a `c3.Table` for the year table.
-            var years_table;
-            var gdp_column;
-            charts.push(years_table = new c3.Table({
+            charts.push(new c3.Table({
                 anchor: '#worldbank_year_table',
                 // Bind it to the **data** prepared above.
                 // The `key`'s represent year_id`s and the `value`'s represent gdp.
@@ -415,30 +409,24 @@
                             this.classList.remove('hover');
                         }
                     }
+                },
+                handlers: {
+                    'select': function (selections) {
+                        if (selections.length)
+                            year_dim.filter(function (key) { return selections.map(function (d) { return d.key; }).indexOf(key) >= 0; });
+                        else
+                            year_dim.filterAll();
+                        redraw();
+                    }
                 }
             }));
-            // As an alternative to declaratively setting `handlers` for the chart, you can imperatively call
-            // `.on()` to manage event handlers.
-            //
-            // If the user **selects** one or more rows in the table, then we will
-            // **filter** the data based on those years using _Crossfilter_.
-            // `redraw()` is then used to update the charts based on the updated data.
-            years_table.on('select', function (selections) {
-                if (selections && selections.length)
-                    year_dim.filter(function (key) { return selections.map(function (d) { return d.key; }).indexOf(key) >= 0; });
-                else
-                    year_dim.filterAll();
-                redraw();
-            });
 
             // ###########################################################################
             // ### Region Table
             var region_color = d3.scale.category10();
             var region_data = region_dim.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
             // Create a `c3.Table` for the regions table.
-            var regions_table;
-            var gdp_column;
-            charts.push(regions_table = new c3.Table({
+            charts.push(new c3.Table({
                 anchor: '#worldbank_region_table',
                 // Bind it to the **data** prepared above.
                 // The `key`'s represent region_id`s and the `value`'s represent gdp.
@@ -478,21 +466,17 @@
                             this.classList.remove('hover');
                         }
                     }
+                },
+                handlers: {
+                    'select': function (selections) {
+                        if (selections.length)
+                            region_dim.filter(function (key) { return selections.map(function (d) { return d.key; }).indexOf(key) >= 0; });
+                        else
+                            region_dim.filterAll();
+                        redraw();
+                    }
                 }
             }));
-            // As an alternative to declaratively setting `handlers` for the chart, you can imperatively call
-            // `.on()` to manage event handlers.
-            //
-            // If the user **selects** one or more rows in the table, then we will
-            // **filter** the data based on those regions using _Crossfilter_.
-            // `redraw()` is then used to update the charts based on the updated data.
-            regions_table.on('select', function (selections) {
-                if (selections && selections.length)
-                    region_dim.filter(function (key) { return selections.map(function (d) { return d.key; }).indexOf(key) >= 0; });
-                else
-                    region_dim.filterAll();
-                redraw();
-            });
             // #########################################################################################
             // ## Country Table
 
