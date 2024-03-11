@@ -90,8 +90,9 @@
     <span id="waiting"><b>Loading World Bank Data...</b></span>
 
     <main style="display:none">
-        <div id="worldbank_region_table" style="width:18em"></div>
-        <div id="worldbank_country_table" style="min-height:330px"></div>
+        <div id="worldbank_year_table"></div>
+        <div id="worldbank_region_table"></div>
+        <div id="worldbank_country_table"></div>
     </main>
     <script>
         // # C3 Crossfilter Dataset
@@ -239,16 +240,10 @@
             console.log("Countries:", countries);
             // Setup the core metrics dataset with [**Crossfilter**](http://square.github.io/crossfilter/)
             var xf = crossfilter(gdp_data);
-            // `groupAll()` allows us to get a single value for the entire dataset.
-            // In this case we do a reduction based on the total population.
-            var total_population = xf.groupAll().reduceSum(function (d) { return d.population; });
-            var total_gdp = xf.groupAll().reduceSum(function (d) { return d.gdp; });
             // Prepare the Crossfilter **dimensions** we can filter the data on.
-            // With this we can filter based on country, region, year, urbanization, etc.
+            // With this we can filter based on country, region, year
             // Notice the _region_ dimension is added even though the dataset doesn't link directly to
             // a region.
-            // The _agriculture_, _services_, and _manufacturing_ dimensions are also created based
-            // on their percentage of GDP instead of an absolute value.
             var country_dim = xf.dimension(function (d) { return d.country_code; });
             var region_dim = xf.dimension(function (d) { return countries[d.country_code].region_id; });
             var year_dim = xf.dimension(function (d) { return d.year; });
@@ -377,6 +372,65 @@
                         }
                     },
                 ]
+
+            // ###########################################################################
+            // ### year Table
+            var year_data = year_dim.group().reduce(reduceAdd, reduceRemove, reduceInitial).all();
+            // Create a `c3.Table` for the year table.
+            var years_table;
+            var gdp_column;
+            charts.push(years_table = new c3.Table({
+                anchor: '#worldbank_year_table',
+                // Bind it to the **data** prepared above.
+                // The `key`'s represent year_id`s and the `value`'s represent gdp.
+                data: year_data,
+                sortable: true,
+                width: '100%',
+                // Create two **columns** for this table.  One with the year name and another for the GDP value
+                columns: [
+                    {
+                        // The "year" column is styled to have a background that matches the color for the
+                        // year this country is in.
+                        header: { text: "Year" },
+                        cells: {
+                            text: function (d) { return d.key; }
+                        }
+                    }
+                ].concat(deepClone(common_columns)),
+                // The initial **sort**.
+                sort_column: "GDP",
+                // Allow the user to **select** multiple items in the table
+                selectable: 'multi',
+                row_options: {
+                    events: {
+                        mouseenter: function () {
+                            // `this` refers to the current row element in this context.
+                            // Add the 'hover' class to the row when the mouse enters its area.
+                            // The stylesheet then causes any table rows with
+                            // the class `hover` to have a wheat-colored background.
+                            this.classList.add('hover');
+                        },
+                        mouseleave: function () {
+                            // Remove the 'hover' class from the row when the mouse leaves its area.
+                            this.classList.remove('hover');
+                        }
+                    }
+                }
+            }));
+            // As an alternative to declaratively setting `handlers` for the chart, you can imperatively call
+            // `.on()` to manage event handlers.
+            //
+            // If the user **selects** one or more rows in the table, then we will
+            // **filter** the data based on those years using _Crossfilter_.
+            // `redraw()` is then used to update the charts based on the updated data.
+            years_table.on('select', function (selections) {
+                if (selections && selections.length)
+                    year_dim.filter(function (key) { return selections.map(function (d) { return d.key; }).indexOf(key) >= 0; });
+                else
+                    year_dim.filterAll();
+                redraw();
+            });
+
             // ###########################################################################
             // ### Region Table
             var region_color = d3.scale.category10();
@@ -410,28 +464,18 @@
                 sort_column: "GDP",
                 // Allow the user to **select** multiple items in the table
                 selectable: 'multi',
-                // `row_options` is used to dynamically adjust **rows**.
-                // `row_options.classes` will assign CSS **classes** to **rows**.  The class name can be
-                // anything you like.  In this example we set the rows to have class `hover` if the row's
-                // region is the same as the region the user is hovering over with their mouse or if they
-                // are hovering over a country in that region.  The stylesheet then causes any table rows with
-                // the class `hover` to have a wheat-colored background.
                 row_options: {
-                    classes: {
-                        'hover': function (d) { return regions[d.key] === hover_region || (hover_country && d.key === hover_country.region_id); }
-                    },
-                    // `row_options.events` will set **event handlers** for **rows** in the table.  Here we set handlers for
-                    // when the mouse hovers over the row.  When it does, we record the region the user is hovering
-                    // over and call `restyle()` to restyle the charts.  This way all of the charts in the example
-                    // can highlight or somehow indicate this region of interest.
                     events: {
-                        mouseenter: function (d) {
-                            hover_region = regions[d.key];
-                            restyle();
+                        mouseenter: function () {
+                            // `this` refers to the current row element in this context.
+                            // Add the 'hover' class to the row when the mouse enters its area.
+                            // The stylesheet then causes any table rows with
+                            // the class `hover` to have a wheat-colored background.
+                            this.classList.add('hover');
                         },
-                        mouseleave: function (d) {
-                            hover_region = null;
-                            restyle();
+                        mouseleave: function () {
+                            // Remove the 'hover' class from the row when the mouse leaves its area.
+                            this.classList.remove('hover');
                         }
                     }
                 }
@@ -475,7 +519,10 @@
                 columns: [
                     {
                         header: { text: "Country" },
-                        cells: { html: function (d) { return '<b>' + countries[d.key].name + '</b>'; } }
+                        cells: { 
+                            html: function (d) { return '<b>' + countries[d.key].name + '</b>';} ,
+                        },
+                        sort: function (d) { return countries[d.key].name ; },
                     }, {
                         // The "Region" column is styled to have a background that matches the color for the
                         // region this country is in.
@@ -485,7 +532,8 @@
                             styles: {
                                 'background-color': function (d) { return region_color(countries[d.key].region_id); }
                             }
-                        }
+                        },
+                        sort: function (d) { return regions[countries[d.key].region_id].name; },
                     },
                 ].concat(deepClone(common_columns)),
                 // Initial column to **sort** on.
@@ -496,26 +544,18 @@
                         padding: "0 0.25em"
                     }
                 },
-                // Use `row_options.classes` to enable **CSS classes** on table **rows**.  The classes can be
-                // whatever class you want for your styling.  Here we turn on the `hover` class if this
-                // country matches the country the user is hovering over or is in the region the use is
-                // hovering over with their mouse.  The stylesheet will then dictate how these rows appear;
-                // in this case giving them a wheat-colored background.
                 row_options: {
-                    classes: {
-                        hover: function (d) { return hover_country === countries[d.key] || hover_region === regions[countries[d.key].region_id]; }
-                    },
-                    // `row_options.events` adds **event handlers** to table **rows**.  These handlers set the global
-                    // hover country when the user hovers the mouse over a row.  `restyle()` is then called
-                    // for all charts to update based on this new focus country.
                     events: {
-                        mouseenter: function (d) {
-                            hover_country = countries[d.key];
-                            restyle();
+                        mouseenter: function () {
+                            // `this` refers to the current row element in this context.
+                            // Add the 'hover' class to the row when the mouse enters its area.
+                            // The stylesheet then causes any table rows with
+                            // the class `hover` to have a wheat-colored background.
+                            this.classList.add('hover');
                         },
-                        mouseleave: function (d) {
-                            hover_country = null;
-                            restyle();
+                        mouseleave: function () {
+                            // Remove the 'hover' class from the row when the mouse leaves its area.
+                            this.classList.remove('hover');
                         }
                     }
                 },
@@ -536,11 +576,6 @@
                         else
                             country_dim.filterAll();
                         redraw();
-                    },
-                    // The `match` event is triggered for a row that is found with a user search
-                    'found': function (search, d) {
-                        hover_country = d != null ? countries[d.key] : null;
-                        restyle();
                     }
                 }
             }));
