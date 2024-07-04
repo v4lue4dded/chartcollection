@@ -50,7 +50,7 @@
 (function() {
     let last_search = undefined;
     let last_found = undefined;
-    const Cls = (c3.Table = class Table extends c3.Base {
+    const Clsc3table = (c3.Table = class Table extends c3.Base {
         static initClass() {
             this.version = 0.1;
             this.prototype.type = 'table';
@@ -165,6 +165,7 @@
         }
 
         constructor() {
+            super(...arguments);
             this._init = this._init.bind(this);
             this._update_headers = this._update_headers.bind(this);
             this._update = this._update.bind(this);
@@ -174,7 +175,6 @@
             this.select = this.select.bind(this);
             this.search = this.search.bind(this);
             this.find = this.find.bind(this);
-            super(...arguments);
         }
 
         _init() {
@@ -551,8 +551,8 @@
             return set;
         }
     });
-    Cls.initClass();
-    return Cls;
+    Clsc3table.initClass();
+    return Clsc3table;
 })();
 
 function __guard__(value, transform) {
