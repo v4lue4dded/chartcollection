@@ -144,6 +144,10 @@ var my_chart = new c3.Plot({
         // Add a **render** callback to add _guidelines_ to track cursor movement using D3.
         // `render` is used for custom initialization and is only called once when the plot is first rendered.
         render: function () {
+            console.log(this.anchor); // Check the complete instance state
+            this.content = new c3.Selection(d3.select(this.anchor), '.content');
+            console.log(this.content); // Check the complete instance state
+            console.log(this.content.all); // Should show a D3 selection, not undefined            
             this.content.all.append('line').attr('class', 'guideline x');
             this.content.all.append('line').attr('class', 'guideline y');
             this.content.all.selectAll('line.guideline')
@@ -204,6 +208,8 @@ var my_chart = new c3.Plot({
 });
 // ## Render
 // Render your chart
+
+console.log(my_chart); // 'someC3SelectionInstance' should be an instance of c3.Selection
 my_chart.render();
 // ## Resize
 // Resize the chart when the window is resized

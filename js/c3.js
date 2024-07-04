@@ -883,7 +883,11 @@ Clsc3.initClass();
 
 // A mixin to add support for registering and triggering events
 c3.Dispatch = class Dispatch {
-    constructor() { this.dispatcher = {}; }
+    constructor() { 
+        this.dispatcher = {};
+        this.on = this.on.bind(this);
+        this.trigger = this.trigger.bind(this);
+    }
 
     // Register an event handler to catch events fired by the visualization.
     // Multiple handlers can be set by specifying a namespace for the event name like `event.namespace`
