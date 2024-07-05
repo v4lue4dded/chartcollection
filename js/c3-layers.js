@@ -52,7 +52,7 @@
 // stroke widths, rounding errors, etc.
 // @abstract
 // @author Douglas Armstrong
-let Clsc3layers = (c3.Plot.Layer = class Layer {
+let Clsc3layers = (c3.Plot.Layer = class Layer extends c3.Dispatch {
     static initClass() {
         this.version = 0.2;
         c3.Layer = this; // Shortcut for accessing plot layers.
@@ -99,6 +99,7 @@ let Clsc3layers = (c3.Plot.Layer = class Layer {
     }
 
     constructor(opt){
+        super();
         this.init = this.init.bind(this);
         this.size = this.size.bind(this);
         this.update = this.update.bind(this);
@@ -112,7 +113,6 @@ let Clsc3layers = (c3.Plot.Layer = class Layer {
         this.max_x = this.max_x.bind(this);
         this.min_y = this.min_y.bind(this);
         this.max_y = this.max_y.bind(this);
-        c3.util.extend(this, new c3.Dispatch);
         c3.util.extend(this, opt);
         this.uid = c3.Plot.Layer._next_uid++;
     }

@@ -1,0 +1,29 @@
+diff --git a/js/c3.js b/js/c3.js
+index 962a2c2..58fdde8 100644
+--- a/js/c3.js
++++ b/js/c3.js
+@@ -995,7 +995,7 @@ c3.Dispatch = class Dispatch {
+ //       ]
+ //   });
+ //   my_table.on('redraw', function() { console.log("Table redraw was called; add customizations here."); });
+-Clsc3 = (c3.Base = class Base {
++Clsc3 = (c3.Base = class Base extends c3.Dispatch {
+     static initClass() {
+         this._next_uid = 0;
+         // [String, DOM node] Optional selector string or DOM node to attach visualization to.
+@@ -1023,13 +1023,13 @@ Clsc3 = (c3.Base = class Base {
+         this.prototype.handlers = undefined;
+     }
+ 
+-    constructor(opt){
++    constructor(opt) {
++        super();
+         this.render = this.render.bind(this);
+         this.resize = this.resize.bind(this);
+         this.redraw = this.redraw.bind(this);
+         this.restyle = this.restyle.bind(this);
+         initialize();
+-        c3.util.extend(this, new c3.Dispatch);
+         c3.util.extend(this, opt);
+         this.uid = c3.Base._next_uid++;
+     }
