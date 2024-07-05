@@ -1,0 +1,100 @@
+diff --git a/js/c3-layers.js b/js/c3-layers.js
+index 7a69e5e..1d895eb 100644
+--- a/js/c3-layers.js
++++ b/js/c3-layers.js
+@@ -52,7 +52,7 @@
+ // stroke widths, rounding errors, etc.
+ // @abstract
+ // @author Douglas Armstrong
+-let Clsc3layers = (c3.Plot.Layer = class Layer {
++let Clsc3layers = (c3.Plot.Layer = class Layer extends c3.Dispatch {
+     static initClass() {
+         this.version = 0.2;
+         c3.Layer = this; // Shortcut for accessing plot layers.
+@@ -99,6 +99,7 @@ let Clsc3layers = (c3.Plot.Layer = class Layer {
+     }
+ 
+     constructor(opt){
++        super();
+         this.init = this.init.bind(this);
+         this.size = this.size.bind(this);
+         this.update = this.update.bind(this);
+@@ -112,7 +113,6 @@ let Clsc3layers = (c3.Plot.Layer = class Layer {
+         this.max_x = this.max_x.bind(this);
+         this.min_y = this.min_y.bind(this);
+         this.max_y = this.max_y.bind(this);
+-        c3.util.extend(this, new c3.Dispatch);
+         c3.util.extend(this, opt);
+         this.uid = c3.Plot.Layer._next_uid++;
+     }
+diff --git a/js/c3-polar.js b/js/c3-polar.js
+index 8879f5b..d8dab0f 100644
+--- a/js/c3-polar.js
++++ b/js/c3-polar.js
+@@ -180,7 +180,7 @@ Clsc3polar.initClass();
+ // A layer for a {c3.Polar polar chart}.
+ // @abstract
+ // @author Douglas Armstrong
+-Clsc3polar = (c3.Polar.Layer = class Layer {
++Clsc3polar = (c3.Polar.Layer = class Layer extends c3.Dispatch {
+     static initClass() {
+         this.version = 0.1;
+         this.prototype.type = 'layer';
+@@ -211,6 +211,7 @@ Clsc3polar = (c3.Polar.Layer = class Layer {
+     }
+ 
+     constructor(opt){
++        super();
+         this.init = this.init.bind(this);
+         this.size = this.size.bind(this);
+         this.update = this.update.bind(this);
+@@ -218,7 +219,6 @@ Clsc3polar = (c3.Polar.Layer = class Layer {
+         this.style = this.style.bind(this);
+         this.redraw = this.redraw.bind(this);
+         this.toPolar = this.toPolar.bind(this);
+-        c3.util.extend(this, new c3.Dispatch);
+         c3.util.extend(this, opt);
+         this.uid = c3.Polar.Layer._next_uid++;
+     }
+diff --git a/js/c3.js b/js/c3.js
+index 4bc1889..58fdde8 100644
+--- a/js/c3.js
++++ b/js/c3.js
+@@ -883,7 +883,11 @@ Clsc3.initClass();
+ 
+ // A mixin to add support for registering and triggering events
+ c3.Dispatch = class Dispatch {
+-    constructor() { this.dispatcher = {}; }
++    constructor() { 
++        this.dispatcher = {};
++        this.on = this.on.bind(this);
++        this.trigger = this.trigger.bind(this);
++    }
+ 
+     // Register an event handler to catch events fired by the visualization.
+     // Multiple handlers can be set by specifying a namespace for the event name like `event.namespace`
+@@ -991,7 +995,7 @@ c3.Dispatch = class Dispatch {
+ //       ]
+ //   });
+ //   my_table.on('redraw', function() { console.log("Table redraw was called; add customizations here."); });
+-Clsc3 = (c3.Base = class Base {
++Clsc3 = (c3.Base = class Base extends c3.Dispatch {
+     static initClass() {
+         this._next_uid = 0;
+         // [String, DOM node] Optional selector string or DOM node to attach visualization to.
+@@ -1019,13 +1023,13 @@ Clsc3 = (c3.Base = class Base {
+         this.prototype.handlers = undefined;
+     }
+ 
+-    constructor(opt){
++    constructor(opt) {
++        super();
+         this.render = this.render.bind(this);
+         this.resize = this.resize.bind(this);
+         this.redraw = this.redraw.bind(this);
+         this.restyle = this.restyle.bind(this);
+         initialize();
+-        c3.util.extend(this, new c3.Dispatch);
+         c3.util.extend(this, opt);
+         this.uid = c3.Base._next_uid++;
+     }

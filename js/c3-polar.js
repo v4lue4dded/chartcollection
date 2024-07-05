@@ -180,7 +180,7 @@ Clsc3polar.initClass();
 // A layer for a {c3.Polar polar chart}.
 // @abstract
 // @author Douglas Armstrong
-Clsc3polar = (c3.Polar.Layer = class Layer {
+Clsc3polar = (c3.Polar.Layer = class Layer extends c3.Dispatch {
     static initClass() {
         this.version = 0.1;
         this.prototype.type = 'layer';
@@ -211,6 +211,7 @@ Clsc3polar = (c3.Polar.Layer = class Layer {
     }
 
     constructor(opt){
+        super();
         this.init = this.init.bind(this);
         this.size = this.size.bind(this);
         this.update = this.update.bind(this);
@@ -218,7 +219,6 @@ Clsc3polar = (c3.Polar.Layer = class Layer {
         this.style = this.style.bind(this);
         this.redraw = this.redraw.bind(this);
         this.toPolar = this.toPolar.bind(this);
-        c3.util.extend(this, new c3.Dispatch);
         c3.util.extend(this, opt);
         this.uid = c3.Polar.Layer._next_uid++;
     }
